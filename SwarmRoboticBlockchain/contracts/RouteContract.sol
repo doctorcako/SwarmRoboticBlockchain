@@ -1,106 +1,83 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./RouteContract.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
-contract RouteFactory {
+contract RouteContract {
     using SafeMath for uint256;
 
-    uint256 private s_nextRouteId;
-    uint256 private s_routeCounter;
-    RouteContract[] private routes_addresses;
-    mapping(string => mapping(string => uint256)) private s_routes_ids;
+    uint256 private s_id;
+    string private s_name;
+    string private s_location;
+    address[] private s_whitelist;
+    mapping(address => bool) private s_carHasVoted;
 
-    event routeDeleted(uint256 _deletedId);
-
-    //set the constructor
-    constructor() {
-        s_nextRouteId = 1;
-        s_routeCounter = 0;
-        routes_addresses = new RouteContract[](0);
-    }
-
-    //create a modifier that checks if the route already exists
-    modifier routeDoesntExists(string memory _location, string memory _name) {
-        require(s_routes_ids[_location][_name] == 0, "Route already exists");
+    modifier notInWhiteList(address _car) {
+        require(getCarFromWhitelist(_car) == address(0), "Already in route");
         _;
     }
 
-    modifier routeExists(string memory _location, string memory _name) {
-        require(s_routes_ids[_location][_name] != 0, "Route doesn't exists");
-        _;
+    constructor(uint256 _id, string memory _location, string memory _name) {
+        s_id = _id;
+        s_name = _name;
+        s_location = _location;
+        s_whitelist = new address[](0);
     }
 
-    function createRoute(
-        string memory _location,
-        string memory _name
-    ) public routeDoesntExists(_location, _name) {
-        RouteContract route = new RouteContract(
-            s_nextRouteId,
-            _location,
-            _name
-        );
-        s_routes_ids[_location][_name] = s_nextRouteId;
-        routes_addresses.push(route);
-        s_nextRouteId = s_nextRouteId.add(1);
-        s_routeCounter = s_routeCounter.add(1);
+    function getName() public view returns (string memory) {
+        return s_name;
     }
 
-    function enterRoute(uint256 _routeIndex) public {
-        RouteContract(address(routes_addresses[_routeIndex])).enterWhiteList();
+    function getCarFromWhitelist(address _car) public view returns (address) {
+        address carAddress = address(0);
+        for (uint256 i = 0; i < s_whitelist.length; i++) {
+            if (s_whitelist[i] == _car) {
+                carAddress = s_whitelist[i];
+                break;
+            }
+        }
+        return carAddress;
     }
 
-    function leaveRoute(uint256 _routeIndex) public {
-        RouteContract(address(routes_addresses[_routeIndex])).leaveWhiteList();
+    function updateId(uint256 _idDeleted) public payable {
+        if (_idDeleted < s_id) {
+            s_id = s_id.sub(1);
+        } else {
+            s_id = s_id.add(1);
+        }
     }
 
-    //this can cause problems on indexes
-    function removeRoute(
-        string memory _location,
-        string memory _name
-    ) public payable {
-        uint256 _routeIndex = getRouteIndex(_location, _name);
-        uint256 _deletedId = _routeIndex + 1;
-        delete routes_addresses[_routeIndex];
-        delete s_routes_ids[_location][_name];
-        emit routeDeleted(_deletedId);
+    function enterWhiteList(address _car) public payable notInWhiteList(_car) {
+        s_whitelist.push(_car);
     }
 
-    function getRouteCars(
-        uint256 _routeIndex
-    ) public view returns (address[] memory) {
-        return
-            RouteContract(address(routes_addresses[_routeIndex]))
-                .getWhiteListedCars();
+    function leaveWhiteList(address _car) public {
+        for (uint i = 0; i < s_whitelist.length; i++) {
+            if (s_whitelist[i] == _car) {
+                s_whitelist[i] = s_whitelist[s_whitelist.length - 1];
+                reorderWhiteList(i);
+                break;
+            }
+        }
     }
 
-    function getRouteCarsNumber(
-        uint256 _routeIndex
-    ) public view returns (uint256) {
-        return
-            RouteContract(address(routes_addresses[_routeIndex]))
-                .getWhiteListedCarsNumber();
+    function reorderWhiteList(uint index) public {
+        for (uint i = index; i < s_whitelist.length - 1; i++) {
+            s_whitelist[i] = s_whitelist[i + 1];
+        }
+        s_whitelist.pop();
     }
 
-    function getRouteName(
-        uint256 _routeIndex
-    ) public view returns (string memory) {
-        return RouteContract(routes_addresses[_routeIndex]).getName();
+    function getWhiteListedCars() public view returns (address[] memory) {
+        return s_whitelist;
     }
 
-    function getRouteIndex(
-        string memory _location,
-        string memory _name
-    ) public view returns (uint256) {
-        return s_routes_ids[_location][_name] - 1;
+    function getWhiteListedCarsNumber() public view returns (uint256) {
+        return s_whitelist.length;
     }
 
-    function getNextId() public view returns (uint256) {
-        return s_nextRouteId;
-    }
-
-    function getNumberOfRoutes() public view returns (uint256) {
-        return s_routeCounter;
+    function setName(string memory _name) public payable {
+        s_name = _name;
     }
 }
