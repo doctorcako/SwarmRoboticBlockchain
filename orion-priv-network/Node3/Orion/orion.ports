@@ -1,0 +1,4 @@
+#This file contains the ports used by the running instance of Orion. This file will be deleted after the node is shutdown.
+#Tue Feb 28 18:18:28 CET 2023
+http-client-port=8890
+http-node-port=8082
