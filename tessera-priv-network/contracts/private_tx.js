@@ -13,6 +13,12 @@ const contractJson = JSON.parse(fs.readFileSync(contractJsonPath));
 const contractBytecode = contractJson.evm.bytecode.object
 const contractAbi = contractJson.abi;
 
+//prueba para compilar con solcjs, generar abi y bin y leer los datos
+const contractByteCode2 = fs.readFileSync(__dirname+'/SimpleStorage.bin')
+const contractAbi2 = fs.readFileSync(__dirname+'/SimpleStorage.abi')
+
+
+
 // Besu doesn't support eth_sendTransaction so we use the eea_sendRawTransaction(https://besu.hyperledger.org/en/latest/Reference/API-Methods/#eea_sendrawtransaction) for things like simple value transfers, contract creation or contract invocation
 async function createContract(clientUrl, fromPrivateKey, fromPublicKey, toPublicKey) {
   const web3 = new Web3(clientUrl)
