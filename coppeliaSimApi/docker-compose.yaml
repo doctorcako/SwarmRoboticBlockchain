@@ -1,0 +1,113 @@
+version: "3.4"
+
+networks:
+  car-swarm:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.239.0/24
+
+
+services:
+  api:
+    container_name: api
+    image: node:latest
+    entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      npm install && node api.js
+    
+    volumes:
+      - ../testAPI/index.js:/api.js
+      - ../testAPI/package.json:/package.json
+
+    ports:
+      - 3000:3000
+
+    networks:
+      car-swarm:
+          ipv4_address: 172.16.239.30
+
+
+  robot1:
+    container_name: robot1
+    image: python:latest
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        pip3 install requests firebase_admin;
+        python3 robot1.py --refresh;
+        sleep 11;
+        python3 robot1.py robot1 172.16.239.30;
+    
+    volumes:
+      - ./api.py:/robot1.py
+      - ./sim.py:/sim.py
+      - ./simConst.py:/simConst.py
+      - ./remoteApi.so:/remoteApi.so
+      - ./firebase_key2.json:/firebase_key2.json
+    ports:
+      - 19999:19999
+
+    depends_on:
+      - api
+
+    networks:
+      car-swarm:
+        ipv4_address: 172.16.239.31
+
+  robot2:
+    container_name: robot2
+    image: python:latest
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        pip3 install requests firebase_admin;
+        sleep 10;
+        python3 robot2.py robot2 172.16.239.30;
+    
+    volumes:
+      - ./api.py:/robot2.py
+      - ./sim.py:/sim.py
+      - ./simConst.py:/simConst.py
+      - ./remoteApi.so:/remoteApi.so
+      - ./firebase_key2.json:/firebase_key2.json
+
+    ports:
+      - 20000:20000
+    depends_on:
+      - api
+
+    networks:
+      car-swarm:
+        ipv4_address: 172.16.239.32
+
+  robot3:
+    container_name: robot3
+    image: python:latest
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        pip3 install requests firebase_admin;
+        sleep 10;
+        python3 robot3.py robot3 172.16.239.30;
+    
+    volumes:
+      - ./api.py:/robot3.py
+      - ./sim.py:/sim.py
+      - ./simConst.py:/simConst.py
+      - ./remoteApi.so:/remoteApi.so
+      - ./firebase_key2.json:/firebase_key2.json
+
+    ports:
+      - 20001:20001
+    depends_on:
+      - api
+
+    networks:
+      car-swarm:
+        ipv4_address: 172.16.239.33

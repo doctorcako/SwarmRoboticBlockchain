@@ -1,11 +1,11 @@
 import sim
-import numpy as np
 import time
 import sys
 import requests
 import threading
 import firebase_admin 
 from firebase_admin import messaging, credentials, firestore, db
+import os
 
 def connect(port):
     sim.simxFinish(-1)
@@ -69,7 +69,7 @@ def initialize_firestore(db):
     })
 
 
-def roadSituationEventControl(db):
+def roadSituationEventControl(db, apiAddress):
     callback_done = threading.Event()
     def on_snapshot(col_snapshot, changes, read_time):
         # print(u'WARNING!')
@@ -101,8 +101,8 @@ def roadSituationEventControl(db):
                     'triggererId':'0x123456798'
                 }
 
-                response=requests.post('http://localhost:3000/registerEvent',json=data)
-                # print(read_time)
+                response=requests.post('http://'+apiAddress+':3000/registerEvent',json=data)
+                print(read_time)
 
         callback_done.set()
         
@@ -118,8 +118,7 @@ def roadSituationEventControl(db):
 
 
 def main(argv):
-    
-    cred = credentials.Certificate('/home/cako/swarmRoboticBlockchain/coppeliaSimApi/firebase_key2.json')
+    cred = credentials.Certificate(os.getcwd()+'/firebase_key2.json')
     app = firebase_admin.initialize_app(cred)
     db = firestore.client()
 
@@ -127,13 +126,19 @@ def main(argv):
         initialize_firestore(db)
     else:
         print('---- You can restart the road situations simulation data with `--refresh` ----')
-        roadSituationEventControl(db)
+        roadSituationEventControl(db, argv[2])
 
         # robot_handle(argv[2],argv[1],db)
 
-        road_situations = db.collection(u'road_situations').document('AP-7').update({u'retention':True})
-        time.sleep(1)
-
+        if(argv[1]) == 'robot1':
+            print('robot1')
+            road_situations = db.collection(u'road_situations').document('AP-7').update({u'retention':True})
+            time.sleep(3)
+        
+        if(argv[1]) == 'robot2':
+            print('robot2')
+            road_situations = db.collection(u'road_situations').document('M-40').update({u'accident':True})
+            time.sleep(3)
         # # print('update AP-7 accident true')
         # road_situations = db.collection(u'road_situations').document(u'N-333').update({u'accident':True})
         # time.sleep(5)
