@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "swarmrobotic-ba749",
+  "private_key_id": "74b27a7f4bfc922e9bbd44fac83e949afca61b41",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDLgQc0rDaW2P/G\nxENeTyEYLXCv41ZUJBT0tsAwwwv/NBBR1s3VzDcDiqQwIbxVOaHRpg5hJ2235Vdo\nQWaCtNz3l6lZK3MnMXW+uIyY673PVvoG/Wa/6OArg20COBRN80SJyhJorFTIJYqv\naGHlG24UWp33BBU7tPLz0NhUhaKgYUTkhPIP+3mUKBeurZiZNkdncAbVomKamvkP\njUtt8JilOjGCGVeD/auAe7j2Gyn9IAT9wlKQLvbu8Oh2zsoajoZSD4yR3+1FGSBt\nb9cZNyVvH3KYqpH4EQ1mFiVJ35zfrZhA7kPnRmQOw6Z7YHhFmFxwjtjFeZoQohB8\ndZxT7GArAgMBAAECggEAA0F6tIiGzQ4GtY7hRwp8DI95jI7WDD2RikK8O2t7bydN\nlYmavG9qd+eJbe20PibQZHLEKyC+3CDSr6vQMIolON7XykHsMzXS3OzF7xJidIU/\nNcprEOnwYDHXliAAjyizsYKmnb8YEiWrnNfOLSSts6ypd1C86DoiYu018NA8hFVS\nvtfhiGTbQIKIwqKlHmteBPepERnD/4m2PQy3MYS31/V8XkZhwcdUB9W5uKvZCOhk\nGZ1y3ktF7BtpqXcOMzG+F0f4KY0wyguF5s6JeTwSxenbTTZ6apV4e0UHGzRumjSa\nAxQihtR3VvIMuoChPlfiYbkAQ7VyN9G9pNvD/AZKIQKBgQDrI9oMp515c683ij/e\n7IJiQcq/m2mcdz7kZjiS3Lq64mkbiSuBFCqIkZK8dd9WWNfRu8uiapb6UhImeVQj\nWpTcG0R3/9RhSdvBpotekYY5pbn0D6GZH4lXew/HCyYYRfiik9GXiIUiSG8/Bw+P\n1M1SIwkavYE9H6rrfqDbXk+OSwKBgQDdjrTQlkvGaoEcaHMoI/o6Rs6nmzGME49o\nloq+IC/LxaqNDteciDhDu5MHZCN7j2yzMfWX6nkMRKWuXYCXy5Y5Cna8ylwJLVaI\nFMtBCi6pInuJv+cApMvQmEDAlYN75jNhbZhQVL8EoncneN4X75onVOA0w09sYWkN\npnHJMKHJoQKBgQC5fZ++Sd909qhrRNkbzzEPt9zsB/ppHrxzSpwoZo27bW4C9dNm\n0PS4pTW/C7EyGYWvAtkh97nAIEwHI8EW3pb9h1kc3Ki6UpxUCEB7Sos7IJwvhsEw\n3OroIsEQgJ/9l/0Kq1c0ldKId+GiM7y39uQ9fjvpZ0LzZ+7aNRtJ0f0qPwKBgAuu\nHUwt0DranInh28hO9T8jQnvFi7wlv9a0sQXK7poghpg/IxDGgajYd6zZE6HM8t8T\nkC39F3qVF+L0XPYjrny9V3smc+mr8TblWb3JCqKyBa9CZaw8A96wWCGPAEqE3UqS\nm4gIn7Vf10ZGcfbzE75lFBjT/xjoncAxeSgxHyZhAoGAasgM68WXqrM5FXs6b97D\nKNoRdOO2rEJjlGIpE60btUb2JV5kXjFbSZHqmbqVrV1TP9yjBso8G0OiNpkXEjZN\n/3P0B42O56XNeemtm1k1lh+Rx3UwATZTjKIHRH2pGxqngBiWs85YdBSPUCsrAA3T\nRhcuVeFmn2XRCWh+BI3C3EU=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-v3zcp@swarmrobotic-ba749.iam.gserviceaccount.com",
+  "client_id": "113658304553091496625",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-v3zcp%40swarmrobotic-ba749.iam.gserviceaccount.com"
+}

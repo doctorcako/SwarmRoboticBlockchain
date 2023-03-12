@@ -4,24 +4,19 @@ import time
 import sys
 import requests
 import firebase_admin 
-from firebase_admin import messaging
+from firebase_admin import messaging, credentials, firestore
 
-cred = firebase_admin.credentials.Certificate('firebase_key.json')
-firebase_admin.initialize_app(cred)
-
-topic = 'road_situations'
-messaging.subscribe_to_topic('road_situations','road_situations')
-
-def callback(message):
-    print('Received message:',message) 
-
-listener = messaging.Listener(callback)
-
-listener.start()
-
-while True:
-    pass
+cred = credentials.Certificate('/home/cako/swarmRoboticBlockchain/coppeliaSimApi/firebase_key2.json')
     
+app = firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+robots = db.collection(u'robots').document(u'node1')
+robots.set({
+    u'address':u'1265846546'
+})
 
 
-main()
+def initialize_firestore():
+    
