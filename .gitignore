@@ -1,3 +1,4 @@
 node_modules
 data/
-Tessera/target
+Tessera/
+.env
