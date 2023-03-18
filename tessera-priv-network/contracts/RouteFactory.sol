@@ -9,17 +9,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract RouteFactory {
     using SafeMath for uint256;
 
-    enum RouteNames {
-        AP7,
-        M40,
-        CITY
-    }
-
-    enum RouteLocations {
-        ALICANTE,
-        ELCHE
-    }
-
     address private immutable i_admin;
     uint256 private s_nextRouteId;
     uint256 private s_routeCounter;

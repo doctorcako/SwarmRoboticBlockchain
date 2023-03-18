@@ -5,24 +5,58 @@ app.use(bodyparser.json())
 const port = 3000;
 const Web3 = require('web3');
 const Web3Quorum = require('web3js-quorum');
-const { tessera, besu } = require("../contracts/keys.js");
-const { createContract, getValueAtAddress } = require("../contracts/private_tx.js");
+const { tessera, besu } = require("./keys.js");
+const { setUp, createRoute, getRouteIndex, routeHandler } = require("../contracts/routeController.js")
+let mainContractAddress = '';
 
 
 app.get("/", (req, res) => {
   res.send({ message: "Hello World!" });
 });
 
-app.listen(port, () => {
-  console.log(`app listening at http://localhost:${port}`);
+app.listen(port, async () => {
+  mainContractAddress = await setUp()
+  console.log('----------------------------------')
+  console.log(`* CORE API ready `);
+  console.log('* This API connects private network and the swarm - It is mandatory to run just before nodes ')
+  console.log('----------------------------------')
+
+  
 });
 
-app.post("/registerEvent",(req,res)=>{
-  console.log(req.body)
+app.post("/createNewRoute",async (req,res)=>{
+  //meter en el body quíen lo está mandando, location y nombre
+  await createRoute(besu.member1.url, mainContractAddress, req.body.location, req.body.routeName, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
 })
 
-app.post("/deploy",(req,res)=>{
-  console.log(req.body)
+app.post("/enterRoute",async (req,res)=>{
+  // await enterRoute(req.body.location, req.body.name)
+  let routeId = await getRouteIndex('Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
+  await routeHandler('enterRoute','Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey, besu.member1.name, routeId)
+
+})
+
+app.post("/leaveRoute",async (req,res)=>{
+  // await enterRoute(req.body.location, req.body.name)
+  let routeId = await getRouteIndex('Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
+  await routeHandler('leaveRoute','Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey, besu.member1.name, routeId)
+
+})
+
+app.post("/getRouteCars",async (req,res)=>{
+  //let cars = await routeHandler('getRouteCars','Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey, besu.member1.name, routeId)
+  //let routeId = await getRouteIndex('req.location',req.name',req.asdas, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
+
+  let routeId = await getRouteIndex('Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
+  let cars = await routeHandler('getRouteCars','Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey, besu.member1.name, routeId)
+  let carsAddressesList = cars.output.split('000000000000000000000000').filter(car => car.length > 10);
+
+})
+
+
+app.post('/registerEvent',async(req, res)=>{
+
+
 })
 
 app.post("/store",(req,res)=>{

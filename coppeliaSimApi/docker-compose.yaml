@@ -9,25 +9,26 @@ networks:
 
 
 services:
-  api:
-    container_name: api
-    image: node:latest
-    entrypoint:
-    - /bin/bash
-    - -c
-    - |
-      npm install && node api.js
+
+  # api:
+  #   container_name: api
+  #   image: node:latest
+  #   entrypoint:
+  #   - /bin/bash
+  #   - -c
+  #   - |
+  #     npm install && node api.js
     
-    volumes:
-      - ../testAPI/index.js:/api.js
-      - ../testAPI/package.json:/package.json
+  #   volumes:
+  #     - ../tessera-priv-network/app/index.js:/api.js
+  #     - ../tessera-priv-network/app/package.json:/package.json
 
-    ports:
-      - 3000:3000
+  #   ports:
+  #     - 3000:3000
 
-    networks:
-      car-swarm:
-          ipv4_address: 172.16.239.30
+  #   networks:
+  #     car-swarm:
+  #         ipv4_address: 172.16.239.30
 
 
   robot1:
@@ -51,8 +52,8 @@ services:
     ports:
       - 19999:19999
 
-    depends_on:
-      - api
+    # depends_on:
+    #   - api
 
     networks:
       car-swarm:
@@ -78,8 +79,8 @@ services:
 
     ports:
       - 20000:20000
-    depends_on:
-      - api
+    # depends_on:
+    #   - api
 
     networks:
       car-swarm:
@@ -105,8 +106,8 @@ services:
 
     ports:
       - 20001:20001
-    depends_on:
-      - api
+    # depends_on:
+    #   - api
 
     networks:
       car-swarm:

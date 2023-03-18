@@ -15,8 +15,7 @@ const contractAbi = contractJson.abi;
 
 //prueba para compilar con solcjs, generar abi y bin y leer los datos
 const contractByteCode2 = fs.readFileSync(__dirname+'/SimpleStorage.bin')
-const contractAbi2 = fs.readFileSync(__dirname+'/SimpleStorage.abi')
-
+const contractAbi2 = JSON.parse(fs.readFileSync(__dirname+'/SimpleStorage.abi'))
 
 
 // Besu doesn't support eth_sendTransaction so we use the eea_sendRawTransaction(https://besu.hyperledger.org/en/latest/Reference/API-Methods/#eea_sendrawtransaction) for things like simple value transfers, contract creation or contract invocation
@@ -26,7 +25,7 @@ async function createContract(clientUrl, fromPrivateKey, fromPublicKey, toPublic
   // initialize the default constructor with a value `47 = 0x2F`; this value is appended to the bytecode
   const contractConstructorInit = "000000000000000000000000000000000000000000000000000000000000002F";
   const txOptions = {
-    data: '0x'+contractBytecode+contractConstructorInit,
+    data: '0x'+contractByteCode2+contractConstructorInit,
     privateKey: fromPrivateKey,
     privateFrom: fromPublicKey,
     privateFor: [toPublicKey]
@@ -104,10 +103,10 @@ async function main(){
     //wait for the blocks to propogate to the other nodes
     await new Promise(r => setTimeout(r, 20000));
     console.log("Verify the private transaction is private by reading the value from all three members .. " )
-    await getValueAtAddress(besu.member1.url, "member1",  privateTxReceipt.contractAddress, contractAbi, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey);
-    await getValueAtAddress(besu.member2.url, "member2",  privateTxReceipt.contractAddress, contractAbi, besu.member2.accountPrivateKey, tessera.member2.publicKey, tessera.member1.publicKey);
-    await getValueAtAddress(besu.member3.url, "member3",  privateTxReceipt.contractAddress, contractAbi, besu.member3.accountPrivateKey, tessera.member3.publicKey, tessera.member1.publicKey);
-    await getValueAtAddress(besu.member3.url, "member4",  privateTxReceipt.contractAddress, contractAbi, besu.member3.accountPrivateKey, tessera.member3.publicKey, tessera.member1.publicKey);
+    await getValueAtAddress(besu.member1.url, "member1",  privateTxReceipt.contractAddress, contractAbi2, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey);
+    await getValueAtAddress(besu.member2.url, "member2",  privateTxReceipt.contractAddress, contractAbi2, besu.member2.accountPrivateKey, tessera.member2.publicKey, tessera.member1.publicKey);
+    await getValueAtAddress(besu.member3.url, "member3",  privateTxReceipt.contractAddress, contractAbi2, besu.member3.accountPrivateKey, tessera.member3.publicKey, tessera.member1.publicKey);
+    await getValueAtAddress(besu.member3.url, "member4",  privateTxReceipt.contractAddress, contractAbi2, besu.member3.accountPrivateKey, tessera.member3.publicKey, tessera.member1.publicKey);
 
 
   })
