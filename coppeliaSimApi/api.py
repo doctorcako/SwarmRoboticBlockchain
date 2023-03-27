@@ -79,17 +79,17 @@ def roadSituationEventControl(db, apiAddress):
                 docName = change.document.id
                 print(docName)
                 if change.document.get('accident') == True:
-                    eventType = 'accident'
+                    eventType = 'ACCIDENT'
                     print('Posible Accident!')
                     print('--------------------------')
 
                 elif change.document.get('retention') == True:
-                    eventType = 'retention'
+                    eventType = 'RETENTION'
                     print('Posible Retention!')
                     print('--------------------------')
 
                 elif change.document.get('environment_difficulties') == True:
-                    eventType = 'environment_difficulties'
+                    eventType = 'ENVIRONMENT_DIFFICULTIES'
                     print('Posible environment difficulties!')
                     print('--------------------------')
 
@@ -101,8 +101,8 @@ def roadSituationEventControl(db, apiAddress):
                     'triggererId':'0x123456798'
                 }
 
-                response=requests.post('http://'+apiAddress+':3000/registerEvent',json=data)
-                print(read_time)
+                response=requests.post('http://'+apiAddress+':3000/updateStatus',json=data)
+                print(response.json())
 
         callback_done.set()
         
@@ -133,7 +133,7 @@ def main(argv):
         if(argv[1]) == 'robot1':
             print('robot1')
             road_situations = db.collection(u'road_situations').document('AP-7').update({u'retention':True})
-            time.sleep(3)
+            time.sleep(10)
         
         if(argv[1]) == 'robot2':
             print('robot2')

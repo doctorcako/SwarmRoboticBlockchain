@@ -67,9 +67,9 @@ async function setUp(){
     console.log('############################################################')
     console.log(`# Main route factory smart contract deployed at ${contract.contractAddress}, adding main route "Alicante, AP-7" to the manager`)
     console.log('############################################################')
-    await createRoute(besu.member1.url, contract.contractAddress, 'Alicante','AP-7', besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
+    let receipt = await createRoute(besu.member1.url, contract.contractAddress, 'Alicante','AP-7', besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
     console.log('############################################################')
-    
+
     return contract.contractAddress;
 }
 
@@ -97,7 +97,11 @@ async function routeHandler(method, location, name, clientUrl, address, fromPriv
     console.log(`${method} completed -> ${location}, ${name} : ${user}`)
     const result = await web3quorum.priv.waitForTransactionReceipt(transactionHash);
 
-    return result;
+    if(method == 'getRouteCars'){
+        return JSON.parse(JSON.stringify(web3.eth.abi.decodeParameters([{type:'address[]', name:""}], result.output)))
+    }else{
+        return result;
+    }
 }
 
 async function getRouteIndex(location, name, clientUrl, address, fromPrivateKey, fromPublicKey, toPublicKey){
@@ -122,14 +126,43 @@ async function getRouteIndex(location, name, clientUrl, address, fromPrivateKey,
     };
 
     const transactionHash = await web3quorum.priv.generateAndSendRawTransaction(functionParams);
-    console.log("Route index is: " + result.output);
 
     const result = await web3quorum.priv.waitForTransactionReceipt(transactionHash);
+    console.log("Route index is: " + result.output);
+
     return result.output;
 }
 
+async function changeRouteStatus(status, location, name, clientUrl, address, fromPrivateKey, fromPublicKey, toPublicKey, user, routeId){
+    const web3 = new Web3(clientUrl)
+    const web3quorum = new Web3Quorum(web3, chainId);
+    const contract = new web3quorum.eth.Contract(contractAbi);
+    const functionAbi = contract._jsonInterface.find(e => {
+        return e.name === 'setRouteStatus';
+    });
+    
+    const functionArgs = web3quorum.eth.abi
+    .encodeParameters(functionAbi.inputs, [routeId, status])
+    .slice(2);
 
+    const functionParams = {
+        to: address,
+        data: functionAbi.signature + functionArgs,
+        privateKey: fromPrivateKey,
+        privateFrom: fromPublicKey,
+        privateFor: [toPublicKey]
+    };
+       
+    const transactionHash = await web3quorum.priv.generateAndSendRawTransaction(functionParams);
+    const result = await web3quorum.priv.waitForTransactionReceipt(transactionHash);
+    const eventType = [{type: 'string', name: 'route_status'}]
 
+    const decodedParameters = web3.eth.abi.decodeParameters(eventType, result.logs[0].data);
+    const eventParameters = JSON.parse(JSON.stringify(decodedParameters, null, 4))
+    console.log(`Route status changed to ${eventParameters.route_status} -> ${location}, ${name} : ${user}`)
+    
+    return eventParameters.route_status;
+}
 
 module.exports = {
     deployContract, 
@@ -137,5 +170,5 @@ module.exports = {
     setUp, 
     routeHandler, 
     getRouteIndex, 
-    
+    changeRouteStatus
 }

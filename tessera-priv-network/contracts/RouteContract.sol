@@ -6,11 +6,17 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract RouteContract {
     using SafeMath for uint256;
 
+    enum Status {CLEAN, ACCIDENT, RETENTION, ENVIRONMENT_DIFFICULTIES}
+
     uint256 private s_id;
     string private s_name;
     string private s_location;
     address[] private s_whitelist;
-    mapping(address => bool) private s_carHasVoted;
+    Status private s_currentStatus;
+
+    event StatusChanged(string route_status);
+    event CarAdded(address car_address);
+
 
     modifier notInWhiteList(address _car) {
         require(getCarFromWhitelist(_car) == address(0), "Already in route");
@@ -22,6 +28,7 @@ contract RouteContract {
         s_name = _name;
         s_location = _location;
         s_whitelist = new address[](0);
+        s_currentStatus = Status.CLEAN;
     }
 
     function getName() public view returns (string memory) {
@@ -39,15 +46,8 @@ contract RouteContract {
         return carAddress;
     }
 
-    function updateId(uint256 _idDeleted) public payable {
-        if (_idDeleted < s_id) {
-            s_id = s_id.sub(1);
-        } else {
-            s_id = s_id.add(1);
-        }
-    }
-
     function enterWhiteList(address _car) public payable notInWhiteList(_car) {
+        emit CarAdded(_car);
         s_whitelist.push(_car);
     }
 
@@ -76,7 +76,22 @@ contract RouteContract {
         return s_whitelist.length;
     }
 
-    function setName(string memory _name) public payable {
-        s_name = _name;
+    function setStatus(string calldata status) public payable notInWhiteList(msg.sender){
+
+        //check strings with keccak256 
+        if (keccak256(abi.encodePacked(status)) == keccak256(abi.encodePacked("CLEAN"))) {
+            s_currentStatus = Status.CLEAN;
+        } else if (keccak256(abi.encodePacked(status)) == keccak256(abi.encodePacked("ACCIDENT"))) {
+            s_currentStatus = Status.ACCIDENT;
+        } else if (keccak256(abi.encodePacked(status)) == keccak256(abi.encodePacked("RETENTION"))) {
+            s_currentStatus = Status.RETENTION;
+        } else if (keccak256(abi.encodePacked(status)) == keccak256(abi.encodePacked("ENVIRONMENT_DIFFICULTIES"))) {
+            s_currentStatus = Status.ENVIRONMENT_DIFFICULTIES;
+        }else{
+            revert("Invalid status");
+        }
+
+        emit StatusChanged(status);
+
     }
 }

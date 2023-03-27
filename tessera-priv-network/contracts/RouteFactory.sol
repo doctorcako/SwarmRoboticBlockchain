@@ -71,6 +71,15 @@ contract RouteFactory {
         );
     }
 
+    function setRouteStatus(
+        uint256 _routeIndex,
+        string memory _status
+    ) public {
+        RouteContract(address(routes_addresses[_routeIndex])).setStatus(
+            _status
+        );
+    }
+
     function getRouteCars(
         uint256 _routeIndex
     ) public view returns (address[] memory) {
