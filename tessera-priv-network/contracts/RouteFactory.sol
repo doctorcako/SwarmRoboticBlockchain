@@ -88,18 +88,10 @@ contract RouteFactory {
                 .getWhiteListedCars();
     }
 
-    function getRouteCarsNumber(
-        uint256 _routeIndex
-    ) public view returns (uint256) {
-        return
-            RouteContract(address(routes_addresses[_routeIndex]))
-                .getWhiteListedCarsNumber();
-    }
-
     function getRouteName(
         uint256 _routeIndex
     ) public view returns (string memory) {
-        return RouteContract(routes_addresses[_routeIndex]).getName();
+        return RouteContract(routes_addresses[_routeIndex]).getNameAndLocation();
     }
 
     function getRouteIndex(
@@ -109,11 +101,28 @@ contract RouteFactory {
         return s_routes_ids[_location][_name] - 1;
     }
 
+    function getRouteStatus(
+        uint256 _routeIndex
+    ) public view returns (string memory) {
+        return RouteContract(routes_addresses[_routeIndex]).getStatus();
+    }
+
     function getNextId() public view returns (uint256) {
         return s_nextRouteId;
     }
 
-    function getNumberOfRoutes() public view returns (uint256) {
-        return s_routeCounter;
+    function getRoutes() public view returns (RouteContract[] memory) {
+        //call to each route and get the name and location
+        return routes_addresses;
     }
+
+    function getRoutesNames() public view returns (string[] memory) {
+        //call to each route and get the name and location
+        string[] memory routes_names = new string[](s_routeCounter);
+        for (uint256 i = 0; i < s_routeCounter; i++) {
+            routes_names[i] = RouteContract(routes_addresses[i]).getNameAndLocation();
+        }
+        return routes_names;
+    }
+
 }

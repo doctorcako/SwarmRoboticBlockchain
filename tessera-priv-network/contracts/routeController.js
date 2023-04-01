@@ -6,7 +6,7 @@ const chainId = 1337;
 const contractByteCode = fs.readFileSync(__dirname+'/RouteFactory_sol_RouteFactory.bin');
 const contractAbi = JSON.parse(fs.readFileSync(__dirname+'/RouteFactory_sol_RouteFactory.abi'));
 
-const { tessera, besu } = require("../app/keys.js");
+const { tessera, besu } = require("./keys.js");
 
 
 // WARNING: the keys here are demo purposes ONLY. Please use a tool like Orchestrate or EthSigner for production, rather than hard coding private keys
@@ -14,15 +14,12 @@ async function deployContract(clientUrl, fromPrivateKey, fromPubKey, toPublicKey
     const contractConstructorInit = "000000000000000000000000000000000000000000000000000000000000002F";
     const web3 = new Web3(clientUrl)
     const web3quorum = new Web3Quorum(web3, chainId);
-    // const contractByteCode = fs.readFileSync(__dirname+'/RouteFactory_sol_RouteFactory.bin');
-
-    // const contractAbi = JSON.parse(fs.readFileSync(__dirname+'/'+contractName+'_sol_'+contractName+'.abi'));
 
     const txOptions = {
         data: '0x'+contractByteCode+contractConstructorInit,
         privateKey: fromPrivateKey,
         privateFrom: fromPubKey,
-        privateFor: [toPublicKey]
+        privateFor: toPublicKey
     };
     
     const txHash = await web3quorum.priv.generateAndSendRawTransaction(txOptions);
@@ -49,7 +46,7 @@ async function createRoute(clientUrl, address, location, name, fromPrivateKey, f
         data: functionAbi.signature + functionArgs,
         privateKey: fromPrivateKey,
         privateFrom: fromPublicKey,
-        privateFor: [toPublicKey]
+        privateFor: toPublicKey
     };
     
     const transactionHash = await web3quorum.priv.generateAndSendRawTransaction(functionParams);
@@ -63,11 +60,11 @@ async function setUp(){
     console.log('############################################################')
     console.log('# Setting up Blockchain Swarm Traffic Manager, please wait...')
     console.log('############################################################')
-    let contract = await deployContract(besu.member1.url, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
+    let contract = await deployContract(besu.member1.url, besu.member1.accountPrivateKey, tessera.member1.publicKey, [tessera.member2.publicKey,tessera.member3.publicKey,tessera.member4.publicKey])
     console.log('############################################################')
     console.log(`# Main route factory smart contract deployed at ${contract.contractAddress}, adding main route "Alicante, AP-7" to the manager`)
     console.log('############################################################')
-    let receipt = await createRoute(besu.member1.url, contract.contractAddress, 'Alicante','AP-7', besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
+    let receipt = await createRoute(besu.member1.url, contract.contractAddress, 'Alicante','AP-7', besu.member1.accountPrivateKey, tessera.member1.publicKey,  [tessera.member2.publicKey,tessera.member3.publicKey,tessera.member4.publicKey])
     console.log('############################################################')
 
     return contract.contractAddress;
@@ -90,7 +87,7 @@ async function routeHandler(method, location, name, clientUrl, address, fromPriv
         data: functionAbi.signature + functionArgs,
         privateKey: fromPrivateKey,
         privateFrom: fromPublicKey,
-        privateFor: [toPublicKey]
+        privateFor: toPublicKey
     };
        
     const transactionHash = await web3quorum.priv.generateAndSendRawTransaction(functionParams);
@@ -99,6 +96,9 @@ async function routeHandler(method, location, name, clientUrl, address, fromPriv
 
     if(method == 'getRouteCars'){
         return JSON.parse(JSON.stringify(web3.eth.abi.decodeParameters([{type:'address[]', name:""}], result.output)))
+    }else if(method == 'getRouteStatus'){
+        return JSON.parse(JSON.stringify(web3.eth.abi.decodeParameters([{type:'string', name:""}], result.output)))
+
     }else{
         return result;
     }
@@ -122,7 +122,7 @@ async function getRouteIndex(location, name, clientUrl, address, fromPrivateKey,
         data: functionAbi.signature + functionArgs,
         privateKey: fromPrivateKey,
         privateFrom: fromPublicKey,
-        privateFor: [toPublicKey]
+        privateFor: toPublicKey
     };
 
     const transactionHash = await web3quorum.priv.generateAndSendRawTransaction(functionParams);
@@ -150,7 +150,7 @@ async function changeRouteStatus(status, location, name, clientUrl, address, fro
         data: functionAbi.signature + functionArgs,
         privateKey: fromPrivateKey,
         privateFrom: fromPublicKey,
-        privateFor: [toPublicKey]
+        privateFor: toPublicKey
     };
        
     const transactionHash = await web3quorum.priv.generateAndSendRawTransaction(functionParams);
@@ -164,11 +164,70 @@ async function changeRouteStatus(status, location, name, clientUrl, address, fro
     return eventParameters.route_status;
 }
 
+async function getRoutes(clientUrl, address, fromPrivateKey, fromPublicKey, toPublicKey){
+    const web3 = new Web3(clientUrl)
+    const web3quorum = new Web3Quorum(web3, chainId);
+    const contract = new web3quorum.eth.Contract(contractAbi);
+    // eslint-disable-next-line no-underscore-dangle
+    const functionAbi = contract._jsonInterface.find(e => {
+        return e.name === "getRoutes";
+    });
+
+    const functionArgs = web3quorum.eth.abi
+    .encodeParameters(functionAbi.inputs, [])
+    .slice(2);
+
+    const functionParams = {
+        to: address,
+        data: functionAbi.signature + functionArgs,
+        privateKey: fromPrivateKey,
+        privateFrom: fromPublicKey,
+        privateFor: toPublicKey
+    };
+
+    const transactionHash = await web3quorum.priv.generateAndSendRawTransaction(functionParams);
+    const result = await web3quorum.priv.waitForTransactionReceipt(transactionHash);
+    return JSON.parse(JSON.stringify(web3.eth.abi.decodeParameters([{type:'address[]', name:""}], result.output)))
+
+}
+
+async function getNamesAndLocations(clientUrl, address, fromPrivateKey, fromPublicKey, toPublicKey){
+    const web3 = new Web3(clientUrl)
+    const web3quorum = new Web3Quorum(web3, chainId);
+    const contract = new web3quorum.eth.Contract(contractAbi);
+    // eslint-disable-next-line no-underscore-dangle
+    const functionAbi = contract._jsonInterface.find(e => {
+        return e.name === "getRoutesNames";
+    });
+
+    const functionArgs = web3quorum.eth.abi
+    .encodeParameters(functionAbi.inputs, [])
+    .slice(2);
+
+    const functionParams = {
+        to: address,
+        data: functionAbi.signature + functionArgs,
+        privateKey: fromPrivateKey,
+        privateFrom: fromPublicKey,
+        privateFor: toPublicKey
+    };
+
+    const transactionHash = await web3quorum.priv.generateAndSendRawTransaction(functionParams);
+    const result = await web3quorum.priv.waitForTransactionReceipt(transactionHash);
+    return JSON.parse(JSON.stringify(web3.eth.abi.decodeParameters([{type:'string[]', name:""}], result.output)))
+
+}
+
+
+
+
 module.exports = {
     deployContract, 
     createRoute, 
     setUp, 
     routeHandler, 
     getRouteIndex, 
-    changeRouteStatus
+    changeRouteStatus,
+    getRoutes,
+    getNamesAndLocations
 }

@@ -2,9 +2,23 @@ const express = require("express");
 const app = express();
 const bodyparser = require("body-parser");
 app.use(bodyparser.json())
-const port = 3000;
-const { tessera, besu } = require("./keys.js");
-const { setUp, createRoute, getRouteIndex, routeHandler, changeRouteStatus } = require("../contracts/routeController.js")
+app.use(bodyparser.urlencoded({ extended: true }));
+
+//use cors to allow cross origin resource sharing
+const cors = require("cors");
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+
+
+
+const port = 4000;
+const { tessera, besu } = require("./appKeys.js");
+const { setUp, 
+        createRoute, 
+        getRouteIndex, 
+        routeHandler, 
+        changeRouteStatus, 
+        getRoutes, getNamesAndLocations } = require("../contracts/routeController.js")
+
 let mainContractAddress = '';
 
 app.get("/", (req, res) => {
@@ -20,32 +34,173 @@ app.listen(port, async () => {
 
 });
 
+app.post("/getRoutes",async (req,res)=>{
+  await getRoutes(req.body.nodeRPC, 
+                                mainContractAddress, 
+                                req.body.fromPrivateKey, 
+                                req.body.fromPublicKey, 
+                                req.body.toPublicKey)
+                                .then(async (result) => {
+                                  await getNamesAndLocations(req.body.nodeRPC, 
+                                                              mainContractAddress, 
+                                                              req.body.fromPrivateKey, 
+                                                              req.body.fromPublicKey, 
+                                                              req.body.toPublicKey).then((namesAndLocations) => {
+                                                                //marge the two arrays result and names and Locations
+                                                                let finalResult = []
+                                                                result[0].forEach((route, index) => {
+                                                                  finalResult.push({
+                                                                    routeName: namesAndLocations['0'][index],
+                                                                    address: result['0'][index]
+                                                                  })
+                                                                })
+                                                                res.json(finalResult)
+                                                              })
+                                })
+                                .catch((err) => {
+                                  console.log('Not allowed to perform transactions: '+err)
+                                  res.sendStatus(403)
+                                });
+})
+
 app.post("/createNewRoute",async (req,res)=>{
-  await createRoute(besu.member1.url, mainContractAddress, req.body.location, req.body.routeName, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
+  await createRoute(req.body.nodeRPC, 
+                    mainContractAddress, 
+                    req.body.location, 
+                    req.body.routeName, 
+                    req.body.fromPrivateKey, 
+                    req.body.fromPublicKey, 
+                    req.body.toPublicKey)
+                    .catch((err) => {
+                      console.log('Not allowed to perform transactions: '+err)
+                      res.sendStatus(403)
+                    });
 })
 
 app.post("/enterRoute",async (req,res)=>{
-  let routeId = await getRouteIndex('Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
-  await routeHandler('enterRoute','Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey, besu.member1.name, routeId)
+  await getRouteIndex(req.body.location,
+                      req.body.routeName,
+                      req.body.nodeRPC, 
+                      mainContractAddress, 
+                      req.body.fromPrivateKey, 
+                      req.body.fromPublicKey, 
+                      req.body.toPublicKey)
+                      .then(async (routeId) => {
+                        await routeHandler('enterRoute',req.body.location,
+                          req.body.routeName,
+                          req.body.nodeRPC, 
+                          mainContractAddress, 
+                          req.body.fromPrivateKey, 
+                          req.body.fromPublicKey, 
+                          req.body.toPublicKey, 
+                          req.body.userInfo, 
+                          routeId)
+                      })
+                      .catch((err) => {
+                        console.log('Not allowed to perform transactions: '+err)
+                        res.sendStatus(403)
+                      });
+   
 })
 
 app.post("/leaveRoute",async (req,res)=>{
-  let routeId = await getRouteIndex('Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
-  await routeHandler('leaveRoute','Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey, besu.member1.name, routeId)
+  await getRouteIndex(req.body.location,
+                      req.body.routeName,
+                      req.body.nodeRPC, 
+                      mainContractAddress, 
+                      req.body.fromPrivateKey, 
+                      req.body.fromPublicKey, 
+                      req.body.toPublicKey)
+                      .then(async (routeId) => {
+                        await routeHandler('leaveRoute',req.body.location,
+                                                        req.body.routeName,
+                                                        req.body.nodeRPC, 
+                                                        mainContractAddress, 
+                                                        req.body.fromPrivateKey, 
+                                                        req.body.fromPublicKey, 
+                                                        req.body.toPublicKey, 
+                                                        req.body.userInfo, 
+                                                        routeId)
+                      })
+                      .catch((err) => {
+                        console.log('Not allowed to perform transactions: '+err)
+                        res.sendStatus(403)
+                      });
 })
 
-app.post("/getRouteCars",async (req,res)=>{
-  let routeId = await getRouteIndex('Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
-  let cars = await routeHandler('getRouteCars','Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey, besu.member1.name, routeId)
-  res.send(cars['0'])
+app.post("/getRouteInfo",async (req,res)=>{
+  const ID = await getRouteIndex(req.body.location,
+                      req.body.routeName,
+                      req.body.nodeRPC, 
+                      mainContractAddress, 
+                      req.body.fromPrivateKey, 
+                      req.body.fromPublicKey, 
+                      req.body.toPublicKey)
+                      await routeHandler('getRouteCars',req.body.location,
+                                    req.body.routeName,
+                                    req.body.nodeRPC, 
+                                    mainContractAddress, 
+                                    req.body.fromPrivateKey, 
+                                    req.body.fromPublicKey, 
+                                    req.body.toPublicKey, 
+                                    req.body.userInfo, 
+                                    ID)
+                                .then(async (cars) => {
+                                  await routeHandler('getRouteStatus',req.body.location,
+                                                                      req.body.routeName,
+                                                                      req.body.nodeRPC,
+                                                                      mainContractAddress,
+                                                                      req.body.fromPrivateKey,
+                                                                      req.body.fromPublicKey,
+                                                                      req.body.toPublicKey,
+                                                                      req.body.userInfo,
+                                                                      ID)
+                                                                      .then(async (status) => {
+                                                                        res.json({
+                                                                          cars: cars['0'],
+                                                                          status: status['0']
+                                                                        })
+                                                                      })
+                                    })
+                      .catch((err) => {
+                        console.log('Not allowed to perform transactions: '+err)
+                        res.sendStatus(403)
+                      });      
 })
+
+                    
+
+                      
+  
+
 
 app.post('/updateStatus',async(req, res)=>{
-  let routeId = await getRouteIndex('Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey)
-  let receipt = await changeRouteStatus(req.body.eventType,'Alicante','AP-7',besu.member1.url, mainContractAddress, besu.member1.accountPrivateKey, tessera.member1.publicKey, tessera.member3.publicKey, besu.member1.name, routeId)
-
-  res.json(receipt)
-
+  await getRouteIndex(req.body.location, 
+                      req.body.routeName,
+                      req.body.nodeRPC, 
+                      mainContractAddress, 
+                      req.body.fromPrivateKey, 
+                      req.body.fromPublicKey, 
+                      req.body.toPublicKey)
+                      .then(async (routeId) => {
+                        await changeRouteStatus(req.body.eventType, 
+                                                req.body.location, 
+                                                req.body.routeName, 
+                                                req.body.nodeRPC, 
+                                                mainContractAddress, 
+                                                req.body.fromPrivateKey, 
+                                                req.body.fromPublicKey, 
+                                                req.body.toPublicKey, 
+                                                req.body.userInfo, 
+                                                routeId)
+                                                .then((receipt) => {
+                                                  res.json(receipt)
+                                                })
+                      })
+                      .catch((err) => {
+                        console.log('Not allowed to perform transactions- '+err)
+                        res.sendStatus(403)
+                      });
 })
 
 
@@ -53,6 +208,3 @@ app.post('/registerEvent',async(req, res)=>{
   
 })
 
-app.post("/store",(req,res)=>{
-  console.log(req.body)
-})

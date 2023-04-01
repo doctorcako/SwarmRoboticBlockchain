@@ -13,6 +13,7 @@ contract RouteContract {
     string private s_location;
     address[] private s_whitelist;
     Status private s_currentStatus;
+    mapping(Status => string) private s_statusTypes;
 
     event StatusChanged(string route_status);
     event CarAdded(address car_address);
@@ -29,10 +30,14 @@ contract RouteContract {
         s_location = _location;
         s_whitelist = new address[](0);
         s_currentStatus = Status.CLEAN;
+        s_statusTypes[Status.CLEAN] = "CLEAN";
+        s_statusTypes[Status.ACCIDENT] = "ACCIDENT";
+        s_statusTypes[Status.RETENTION] = "RETENTION";
+        s_statusTypes[Status.ENVIRONMENT_DIFFICULTIES] = "ENVIRONMENT_DIFFICULTIES";
     }
 
-    function getName() public view returns (string memory) {
-        return s_name;
+    function getNameAndLocation() public view returns (string memory) {
+        return string(abi.encodePacked(s_name, " - ", s_location));
     }
 
     function getCarFromWhitelist(address _car) public view returns (address) {
@@ -72,10 +77,6 @@ contract RouteContract {
         return s_whitelist;
     }
 
-    function getWhiteListedCarsNumber() public view returns (uint256) {
-        return s_whitelist.length;
-    }
-
     function setStatus(string calldata status) public payable notInWhiteList(msg.sender){
 
         //check strings with keccak256 
@@ -92,6 +93,11 @@ contract RouteContract {
         }
 
         emit StatusChanged(status);
-
     }
+
+    function getStatus() public view returns (string memory){
+        return s_statusTypes[s_currentStatus];
+    }
+
+    
 }
