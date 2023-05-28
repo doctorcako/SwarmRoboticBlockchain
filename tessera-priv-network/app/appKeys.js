@@ -56,13 +56,13 @@ module.exports = {
         accountPrivateKey: "3ce207be80bf0050fb04cd063ea01b7d65ae2108b43cc9718bc1b4aa24780b55",
         publicKey:"jJoJqINiDg6XTsW1WhdRU1a+e1E1oycN1CjA6AmPEzo="
       },
-      "0x34aca9b6dc968d25ff0dac87bc50cf724ef0da83":{
-        name: "car_test",
+      "0x34aca9b6dc968d25ff0dac87bc50cf724ef0da83": {
+        name: "car3",
         url: "http://127.0.0.1:8547",
         wsUrl: "ws://127.0.0.1:20005",
         privateUrl: "http://127.0.0.1:9401",
         nodekey: "0x4ca4dc7bb91ac358a162eff6772ac9714a2c6cd6becbdc88a1fe1701af4ba5f2bbcaf0d8d5bfeccc98b7756a789fb29315c8d4ab8b97edaa97b7af70005c01ea",
-        accountAddress: "0xd587d661abf33d0dbd6d16169ecd2443f4646cb9",
+        accountAddress: "0x34aca9b6dc968d25ff0dac87bc50cf724ef0da83",
         accountPrivateKey: "3ce207be80bf0050fb04cd063ea01b7d65ae2108b43cc9718bc1b4aa24780b55",
         publicKey:"jJoJqINiDg6XTsW1WhdRU1a+e1E1oycN1CjA6AmPEzo="
       },

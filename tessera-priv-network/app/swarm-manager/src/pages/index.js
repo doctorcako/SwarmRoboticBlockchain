@@ -188,7 +188,13 @@ export default function Home() {
           Swarm Manager Powered by Blockchain Technology
         </h1>
         
-        <p>Author - Carlos Rocamora Esteban</p><img width={"100px"} src='/download.png'></img>
+        <p>Author - Carlos Rocamora Esteban</p>
+        {isWeb3Enabled ? (
+              <img className='center' width={"100px"} src='/download.png'></img>
+        ) : (
+         
+            '')
+            }
         
         {isWeb3Enabled ? (
           <div>

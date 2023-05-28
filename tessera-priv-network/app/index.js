@@ -29,7 +29,7 @@ app.listen(port, async () => {
   mainContractAddress = await setUp()
   console.log('----------------------------------')
   console.log(`* CORE API ready `);
-  console.log('* This API connects private network and the swarm - It is mandatory to run just before nodes ')
+  console.log('* This API connects private network and the swarm - It is mandatory to run just after nodes ')
   console.log('----------------------------------')
 
 });
@@ -93,8 +93,11 @@ app.post("/enterRoute",async (req,res)=>{
                           req.body.fromPrivateKey, 
                           req.body.fromPublicKey, 
                           req.body.toPublicKey, 
-                          req.body.userInfo, 
-                          routeId)
+                          routeId).then((result) => {
+                            res.json(result)
+                          }
+                        )
+
                       })
                       .catch((err) => {
                         console.log('Not allowed to perform transactions: '+err)
@@ -119,7 +122,6 @@ app.post("/leaveRoute",async (req,res)=>{
                                                         req.body.fromPrivateKey, 
                                                         req.body.fromPublicKey, 
                                                         req.body.toPublicKey, 
-                                                        req.body.userInfo, 
                                                         routeId)
                       })
                       .catch((err) => {
@@ -136,53 +138,54 @@ app.post("/getRouteInfo",async (req,res)=>{
                       req.body.fromPrivateKey, 
                       req.body.fromPublicKey, 
                       req.body.toPublicKey)
-                      await routeHandler('getRouteCars',req.body.location,
-                                    req.body.routeName,
-                                    req.body.nodeRPC, 
-                                    mainContractAddress, 
-                                    req.body.fromPrivateKey, 
-                                    req.body.fromPublicKey, 
-                                    req.body.toPublicKey, 
-                                    req.body.userInfo, 
-                                    ID)
-                                .then(async (cars) => {
-                                  await routeHandler('getRouteStatus',req.body.location,
-                                                                      req.body.routeName,
-                                                                      req.body.nodeRPC,
-                                                                      mainContractAddress,
-                                                                      req.body.fromPrivateKey,
-                                                                      req.body.fromPublicKey,
-                                                                      req.body.toPublicKey,
-                                                                      req.body.userInfo,
-                                                                      ID)
-                                                                      .then(async (status) => {
-                                                                        res.json({
-                                                                          cars: cars['0'],
-                                                                          status: status['0']
-                                                                        })
-                                                                      })
-                                    })
-                      .catch((err) => {
-                        console.log('Not allowed to perform transactions: '+err)
-                        res.sendStatus(403)
-                      });      
+
+  await routeHandler('getRouteCars',req.body.location,
+                req.body.routeName,
+                req.body.nodeRPC, 
+                mainContractAddress, 
+                req.body.fromPrivateKey, 
+                req.body.fromPublicKey, 
+                req.body.toPublicKey, 
+                ID)
+            .then(async (cars) => {
+              await routeHandler('getRouteStatus',req.body.location,
+                                                  req.body.routeName,
+                                                  req.body.nodeRPC,
+                                                  mainContractAddress,
+                                                  req.body.fromPrivateKey,
+                                                  req.body.fromPublicKey,
+                                                  req.body.toPublicKey,
+                                                  ID)
+                                                  .then(async (status) => {
+                                                    res.json({
+                                                      cars: cars['0'],
+                                                      status: status['0']
+                                                    })
+                                                  })
+                })
+  .catch((err) => {
+    console.log('Not allowed to perform transactions: '+err)
+    res.sendStatus(403)
+  });      
 })
 
-                    
-
-                      
-  
-
-
 app.post('/updateStatus',async(req, res)=>{
-  await getRouteIndex(req.body.location, 
+  const ID = await getRouteIndex(req.body.location, 
                       req.body.routeName,
                       req.body.nodeRPC, 
                       mainContractAddress, 
                       req.body.fromPrivateKey, 
                       req.body.fromPublicKey, 
                       req.body.toPublicKey)
-                      .then(async (routeId) => {
+
+   await routeHandler('getRouteCars',req.body.location,
+                req.body.routeName,
+                req.body.nodeRPC, 
+                mainContractAddress, 
+                req.body.fromPrivateKey, 
+                req.body.fromPublicKey, 
+                req.body.toPublicKey, 
+                ID).then(async (cars) => {
                         await changeRouteStatus(req.body.eventType, 
                                                 req.body.location, 
                                                 req.body.routeName, 
@@ -190,21 +193,45 @@ app.post('/updateStatus',async(req, res)=>{
                                                 mainContractAddress, 
                                                 req.body.fromPrivateKey, 
                                                 req.body.fromPublicKey, 
-                                                req.body.toPublicKey, 
-                                                req.body.userInfo, 
-                                                routeId)
+                                                req.body.toPublicKey,
+                                                //cars['0'],
+                                                ID)
                                                 .then((receipt) => {
                                                   res.json(receipt)
-                                                })
-                      })
-                      .catch((err) => {
-                        console.log('Not allowed to perform transactions- '+err)
-                        res.sendStatus(403)
-                      });
+                                                }).catch((err) => {
+                                                  console.log('Not allowed to perform transactions- '+err)
+                                                  res.sendStatus(403)
+                                                });
+                                              })
 })
 
-
-app.post('/registerEvent',async(req, res)=>{
+app.post('/getKeys',async(req, res)=>{
   
+  let nodeSender = besu[`${req.body.nodeAddress}`]
+
+  let nodeReceivers = []
+  Object.values(besu).forEach((node) => {
+    if(node.accountAddress != nodeSender.accountAddress){
+        nodeReceivers.push(node)
+    }
+ })
+
+ let publicKeys = []
+ nodeReceivers.forEach((node) => {
+     if(node.publicKey)
+         publicKeys.push(node.publicKey)
+ })
+
+  let data = {
+    sender: nodeSender,
+    publicKeys: publicKeys
+  }
+  
+  if(nodeSender){
+    res.json(data)
+  }else{
+    res.sendStatus(403)
+  }
+
 })
 

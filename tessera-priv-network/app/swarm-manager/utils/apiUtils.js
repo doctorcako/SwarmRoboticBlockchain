@@ -3,6 +3,8 @@ const { besu } = require("../../appKeys.js");
 async function routeApiHandler(method,account, location = null, routeName = null) {
     
     let nodeSender = besu[`${account}`]
+    console.log(account);
+    console.log(nodeSender)
 
     let nodeReceivers = []
     Object.values(besu).forEach((node) => {
